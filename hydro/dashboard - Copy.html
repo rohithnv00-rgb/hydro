@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Sensor Dashboard</h2>
+        <p class="text-muted">Real-time agricultural sensor monitoring</p>
+    </div>
+</div>
+
+<div class="row mt-4" id="sensor-data">
+    {% if sensor_data %}
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">🌡️ pH</h5>
+                <h3 class="text-primary">{{ "%.2f"|format(sensor_data.pH) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">💧 Humidity</h5>
+                <h3 class="text-info">{{ "%.2f"|format(sensor_data.humidity) }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">🌡️ Temperature</h5>
+                <h3 class="text-warning">{{ "%.2f"|format(sensor_data.temperature) }}°C</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">🌱 Moisture</h5>
+                <h3 class="text-success">{{ "%.2f"|format(sensor_data.moisture) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">💡 LDR</h5>
+                <h3 class="text-secondary">{{ "%.2f"|format(sensor_data.ldr_status) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">🚰 Pump</h5>
+                <h3 class="{{ 'text-success' if pump_status == 'ON' else 'text-danger' }}">
+                    {{ pump_status }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-warning">
+            No sensor data available. Please check your sensor data file.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Live Data</h5>
+                <button class="btn btn-sm btn-success" onclick="refreshData()">Refresh</button>
+            </div>
+            <div class="card-body">
+                <div id="last-update" class="text-muted mb-3"></div>
+                <div class="row" id="live-data"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshData() {
+    fetch('/api/sensor-data')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('last-update').textContent = 
+                'Last updated: ' + data.timestamp;
+            
+            if (data.sensor_data) {
+                const liveData = document.getElementById('live-data');
+                liveData.innerHTML = `
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">🌡️ pH</h5>
+                                <h3 class="text-primary">${data.sensor_data.pH.toFixed(2)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">💧 Humidity</h5>
+                                <h3 class="text-info">${data.sensor_data.humidity.toFixed(2)}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">🌡️ Temperature</h5>
+                                <h3 class="text-warning">${data.sensor_data.temperature.toFixed(2)}°C</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">🌱 Moisture</h5>
+                                <h3 class="text-success">${data.sensor_data.moisture.toFixed(2)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">💡 LDR</h5>
+                                <h3 class="text-secondary">${data.sensor_data.ldr_status.toFixed(2)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">🚰 Pump</h5>
+                                <h3 class="${data.pump_status === 'ON' ? 'text-success' : 'text-danger'}">
+                                    ${data.pump_status}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshData, 30000);
+
+// Initial load
+refreshData();
+</script>
+{% endblock %}

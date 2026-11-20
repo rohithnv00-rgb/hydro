@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Sensor Logs</h2>
+        <p class="text-muted">Historical sensor data and pump status</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Sensor Log History</h5>
+                <form method="GET" class="d-flex">
+                    <input type="date" name="date" value="{{ date_filter }}" class="form-control me-2">
+                    <button type="submit" class="btn btn-success">Filter</button>
+                    {% if date_filter %}
+                    <a href="{{ url_for('logs') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>pH</th>
+                                <th>Humidity</th>
+                                <th>Temperature</th>
+                                <th>Moisture</th>
+                                <th>LDR Status</th>
+                                <th>Pump Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log['timestamp'] }}</td>
+                                <td>{{ "%.2f"|format(log['ph']) }}</td>
+                                <td>{{ "%.2f"|format(log['humidity']) }}</td>
+                                <td>{{ "%.2f"|format(log['temperature']) }}</td>
+                                <td>{{ "%.2f"|format(log['moisture']) }}</td>
+                                <td>{{ "%.2f"|format(log['ldr_status']) }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if log['pump_status'] == 'ON' else 'danger' }}">
+                                        {{ log['pump_status'] }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    No logs found for the selected date.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
